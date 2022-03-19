@@ -1,0 +1,3 @@
+Address : <?= USER.info.addrs.0.addr1?> <?= USER.info.addrs.0.addr2?>\n
+MemberShip : <?=USER.membership.grade?> <?= USER.membership.id ?>\n
+\n
