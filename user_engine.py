@@ -46,5 +46,4 @@ class UserEngine:
             self.line_str = self.line_str[:-2]
             self.f.write(self.line_str + '\n')
             self.line_str = ''
-            # check templates and push to list
 
