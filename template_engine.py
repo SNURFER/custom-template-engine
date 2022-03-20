@@ -9,93 +9,93 @@ import json_walker
 # Assume that USERS and USER template inputs do not exist in the same file.
 class TemplateEngine:
     def __init__(self, template_store: TemplateStore, users: json):
-        self.template = template_store
-        self.users: json = users
-        self.line_str: str = ''
-        self.f = open("output.txt", "w")
-        self.deque: str = ''
+        self.__template = template_store
+        self.__users: json = users
+        self.__line_str: str = ''
+        self.__f = open("output.txt", "w")
+        self.__deque: str = ''
 
-        self.loop_flag: bool = False
-        self.loop_arr: [] = []
-        self.loop_template_str: str = ''
+        self.__loop_flag: bool = False
+        self.__loop_arr: [] = []
+        self.__loop_template_str: str = ''
 
     def __del__(self):
-        self.f.close()
+        self.__f.close()
 
     def gen_code(self):
-        for ch in self.template.get_str():
+        for ch in self.__template.get_str():
             # jump to next loop if real line break exists
             # only user written '\n' will move to next line
             if ch != '\n':
-                if not self.loop_flag:
-                    self.write_line(ch, self.users)
+                if not self.__loop_flag:
+                    self.__write_line(ch, self.__users)
                 else:
-                    self.write_loop_template(ch)
+                    self.__write_loop_template(ch)
 
     def gen_code_user(self):
-        for user in self.users:
-            for ch in self.template.get_str():
+        for user in self.__users:
+            for ch in self.__template.get_str():
                 # jump to next loop if real line break exists
                 # only user written '\n' will move to next line
                 if ch != '\n':
-                    if not self.loop_flag:
-                        self.write_line(ch, user)
+                    if not self.__loop_flag:
+                        self.__write_line(ch, user)
                     else:
-                        self.write_loop_template(ch)
+                        self.__write_loop_template(ch)
 
-    def write_line(self, ch: str, users: json):
-        if len(self.deque) == 0 and ch != '<':
-            self.line_str += ch
+    def __write_line(self, ch: str, users: json):
+        if len(self.__deque) == 0 and ch != '<':
+            self.__line_str += ch
 
         # accumulates template data when '<' is started
         elif ch == '<':
-            self.deque += ch
+            self.__deque += ch
         # once deque has appended, just append ch to deque until end of template syntax '>' is found
-        elif len(self.deque) != 0:
-            self.deque += ch
+        elif len(self.__deque) != 0:
+            self.__deque += ch
             # read the inline template input <?[input]?> and generate string with user data
             if ch == '>':
-                if self.deque[2] == '=':
+                if self.__deque[2] == '=':
                     # access directly to data
-                    inline_str = self.deque[3:-2].strip()
+                    inline_str = self.__deque[3:-2].strip()
                     inline_list = inline_str.split('.')
                     parsed_str = json_walker.find_val(users, inline_list[1:])
-                    self.line_str += parsed_str
-                    self.deque = ''
+                    self.__line_str += parsed_str
+                    self.__deque = ''
 
                 else:
                     # for loop mode
-                    inline_str = self.deque[2:-2].strip()
+                    inline_str = self.__deque[2:-2].strip()
                     inline_list = inline_str.split(' ')
                     inline_list2 = inline_list[-1].split('.')
-                    self.loop_arr = json_walker.find_arr(users, inline_list2[1:])
-                    self.loop_flag = True
-                    self.loop_template_str = ''
-                    self.deque = ''
+                    self.__loop_arr = json_walker.find_arr(users, inline_list2[1:])
+                    self.__loop_flag = True
+                    self.__loop_template_str = ''
+                    self.__deque = ''
 
         # write line to file immediately when line break character detected
-        if self.line_str[-2:] == '\\n':
-            self.line_str = self.line_str[:-2]
-            self.f.write(self.line_str + '\n')
-            self.line_str = ''
+        if self.__line_str[-2:] == '\\n':
+            self.__line_str = self.__line_str[:-2]
+            self.__f.write(self.__line_str + '\n')
+            self.__line_str = ''
 
-    def write_loop_template(self, ch: str):
-        self.loop_template_str += ch
+    def __write_loop_template(self, ch: str):
+        self.__loop_template_str += ch
         if ch == '<':
-            self.deque += ch
+            self.__deque += ch
         elif ch == '>':
-            self.deque += ch
-            inline_str = self.deque[2:-2].strip()
+            self.__deque += ch
+            inline_str = self.__deque[2:-2].strip()
             if inline_str.find('endfor') != -1:
-                self.loop_flag = False
-                self.loop_template_str = self.loop_template_str[:-len(self.deque)]
+                self.__loop_flag = False
+                self.__loop_template_str = self.__loop_template_str[:-len(self.__deque)]
                 # TODO write for loop template str here
                 # fixme
-                self.deque = ''
-                for item in self.loop_arr:
-                    for ch in self.loop_template_str:
+                self.__deque = ''
+                for item in self.__loop_arr:
+                    for ch in self.__loop_template_str:
                         if ch != '\n':
-                            self.write_line(ch, item)
-            self.deque = ''
-        elif len(self.deque) > 0:
-            self.deque += ch
+                            self.__write_line(ch, item)
+            self.__deque = ''
+        elif len(self.__deque) > 0:
+            self.__deque += ch

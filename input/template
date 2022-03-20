@@ -1,5 +1,5 @@
-Admin\n
-<? for ID in USERS.*.membership.id ?>
-Membership Id : <?= ID ?>\n
+Name: <?=USER.info.name.given ?> <?=USER.info.name.family?>\n
+<? for ADDR in USER.info.addrs ?>
+Address : <?= ADDR.addr1?> <?= ADDR.addr2?>\n
 <? endfor ?>
 \n
