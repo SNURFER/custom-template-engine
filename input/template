@@ -1,5 +1,5 @@
-Family name: <?=USER.info.name.family?>\n
-Given name: <?=USER.info.name.given ?>\n
-Address : <?= USER.info.addrs.0.addr1?> <?= USER.info.addrs.0.addr2?>\n
-MemberShip : <?=USER.membership.grade?> <?= USER.membership.id ?>\n
+Name: <?=USER.info.name.given ?> <?=USER.info.name.family?>\n
+<? for ADDR in USER.info.addrs ?>
+Address : <?= ADDR.addr1?> <?= ADDR.addr2?>\n
+<? endfor ?>
 \n
