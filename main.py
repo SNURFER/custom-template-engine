@@ -1,6 +1,7 @@
 import input_loader
 from template_store import TemplateStore
 from user_engine import UserEngine
+from template_engine import TemplateEngine
 
 if __name__ == '__main__':
     users = input_loader.load()
@@ -12,7 +13,10 @@ if __name__ == '__main__':
         user_engine = UserEngine(template_store, users)
         user_engine.gen_code()
     else:
-        # users engine
+        # general template engine
+        # input is USERS
+        users_engine = TemplateEngine(template_store, users)
+        users_engine.gen_code()
         pass
 
 

@@ -5,7 +5,8 @@ class TemplateStore:
         f = open('input/template')
         self.template_lines = f.readlines()
         self.template_str = ''.join(self.template_lines)
-        self.user_input = self.template_str.find('<?=USER') != -1
+        # TODO FIXME
+        self.user_input = self.template_str.find('USERS.') == -1
 
     def user_mode(self) -> bool:
         return self.user_input

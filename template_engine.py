@@ -7,7 +7,7 @@ import json_walker
 # TODO syntax check
 # This engine writes every individual user data to template.
 # Assume that USERS and USER template inputs do not exist in the same file.
-class UserEngine:
+class TemplateEngine:
     def __init__(self, template_store: TemplateStore, users: json):
         self.template = template_store
         self.users: json = users
@@ -23,17 +23,16 @@ class UserEngine:
         self.f.close()
 
     def gen_code(self):
-        for user in self.users:
-            for ch in self.template.get_str():
-                # jump to next loop if real line break exists
-                # only user written '\n' will move to next line
-                if ch != '\n':
-                    if not self.loop_flag:
-                        self.write_line(ch, user)
-                    else:
-                        self.write_loop_template(ch)
+        for ch in self.template.get_str():
+            # jump to next loop if real line break exists
+            # only user written '\n' will move to next line
+            if ch != '\n':
+                if not self.loop_flag:
+                    self.write_line(ch, self.users)
+                else:
+                    self.write_loop_template(ch)
 
-    def write_line(self, ch: str, user: json):
+    def write_line(self, ch: str, users: json):
         if len(self.deque) == 0 and ch != '<':
             self.line_str += ch
 
@@ -49,7 +48,7 @@ class UserEngine:
                     # access directly to data
                     inline_str = self.deque[3:-2].strip()
                     inline_list = inline_str.split('.')
-                    parsed_str = json_walker.find_val(user, inline_list[1:])
+                    parsed_str = json_walker.find_val(users, inline_list[1:])
                     self.line_str += parsed_str
                     self.deque = ''
 
@@ -58,7 +57,7 @@ class UserEngine:
                     inline_str = self.deque[2:-2].strip()
                     inline_list = inline_str.split(' ')
                     inline_list2 = inline_list[-1].split('.')
-                    self.loop_arr = json_walker.find_arr(user, inline_list2[1:])
+                    self.loop_arr = json_walker.find_arr(users, inline_list2[1:])
                     self.loop_flag = True
                     self.loop_template_str = ''
                     self.deque = ''
@@ -90,6 +89,3 @@ class UserEngine:
             self.deque = ''
         elif len(self.deque) > 0:
             self.deque += ch
-
-
-
