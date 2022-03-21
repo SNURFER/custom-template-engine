@@ -4,13 +4,23 @@ from template_store import TemplateStore
 import json_walker
 
 
-# Assume that USERS and USER template inputs do not exist in the same file.
 class TemplateEngine:
     def __init__(self, template_store: TemplateStore, users: json):
+        # template file
         self.__template = template_store
+
+        # data file json
         self.__users: json = users
+
+        # accumulated line string
+        # write to file and flush when line break is met
         self.__line_str: str = ''
+
+        # output file descriptor
         self.__f = open("output.txt", "w")
+
+        # accumulated string of template format
+        # <? ?>
         self.__deque: str = ''
 
         self.__loop_flag: bool = False
@@ -48,11 +58,14 @@ class TemplateEngine:
         # accumulate template data when '<' is started
         elif ch == '<':
             self.__deque += ch
+
         # once deque has appended, just append ch to deque until end of template syntax '>' is found
         elif len(self.__deque) != 0:
             self.__deque += ch
-            # read the inline template input <?[input]?> and generate string with user data
+
+            # read template string <?[input]?> and generate string with data
             if ch == '>':
+
                 # deque syntax check. if the text is not <?[input]?> reset deque and append to __line_str
                 if self.__deque[0:2] != '<?' or self.__deque[-2:] != '?>':
                     self.__line_str += ''.join(self.__deque)
@@ -60,18 +73,17 @@ class TemplateEngine:
 
                 # extract value from inline template. format is <?=[input]?>
                 elif self.__deque[2] == '=':
-                    inline_str = self.__deque[3:-2].strip()
-                    inline_list = inline_str.split('.')
-                    parsed_str = json_walker.find_val(users, inline_list[1:])
+                    input_str = self.__deque[3:-2].strip()
+                    key_list = input_str.split('.')
+                    parsed_str = json_walker.find_val(users, key_list[1:])
                     self.__line_str += parsed_str
                     self.__deque = ''
 
-                # for loop mode. format is <? for [] in [] ?>
+                # for loop mode. format is <? for [variable] in [array] ?>
                 else:
-                    inline_str = self.__deque[2:-2].strip()
-                    inline_list = inline_str.split(' ')
-                    inline_list2 = inline_list[-1].split('.')
-                    self.__loop_arr = json_walker.find_arr(users, inline_list2[1:])
+                    input_str = self.__deque[2:-2].strip()
+                    key_list = input_str.split()[-1].split('.')
+                    self.__loop_arr = json_walker.find_arr(users, key_list[1:])
                     self.__loop_flag = True
                     self.__loop_template_str = ''
                     self.__deque = ''
