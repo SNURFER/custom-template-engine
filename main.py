@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     template_engine = TemplateEngine(template_store, users)
     if template_store.user_mode():
-        # should print all users with template
+        # print all users with template
         # input is USER and generate every USER in data.json
         template_engine.gen_code_user()
     else:

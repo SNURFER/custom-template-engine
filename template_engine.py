@@ -4,8 +4,6 @@ from template_store import TemplateStore
 import json_walker
 
 
-# TODO syntax check
-# This engine writes every individual user data to template.
 # Assume that USERS and USER template inputs do not exist in the same file.
 class TemplateEngine:
     def __init__(self, template_store: TemplateStore, users: json):
@@ -47,7 +45,7 @@ class TemplateEngine:
         if len(self.__deque) == 0 and ch != '<':
             self.__line_str += ch
 
-        # accumulates template data when '<' is started
+        # accumulate template data when '<' is started
         elif ch == '<':
             self.__deque += ch
         # once deque has appended, just append ch to deque until end of template syntax '>' is found
@@ -55,16 +53,21 @@ class TemplateEngine:
             self.__deque += ch
             # read the inline template input <?[input]?> and generate string with user data
             if ch == '>':
-                if self.__deque[2] == '=':
-                    # access directly to data
+                # deque syntax check. if the text is not <?[input]?> reset deque and append to __line_str
+                if self.__deque[0:2] != '<?' or self.__deque[-2:] != '?>':
+                    self.__line_str += ''.join(self.__deque)
+                    self.__deque = ''
+
+                # extract value from inline template. format is <?=[input]?>
+                elif self.__deque[2] == '=':
                     inline_str = self.__deque[3:-2].strip()
                     inline_list = inline_str.split('.')
                     parsed_str = json_walker.find_val(users, inline_list[1:])
                     self.__line_str += parsed_str
                     self.__deque = ''
 
+                # for loop mode. format is <? for [] in [] ?>
                 else:
-                    # for loop mode
                     inline_str = self.__deque[2:-2].strip()
                     inline_list = inline_str.split(' ')
                     inline_list2 = inline_list[-1].split('.')
