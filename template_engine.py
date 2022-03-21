@@ -21,7 +21,7 @@ class TemplateEngine:
 
         # accumulated string of template format
         # <? ?>
-        self.__deque: str = ''
+        self.__pattern_str: str = ''
 
         self.__loop_flag: bool = False
         self.__loop_arr: [] = []
@@ -52,41 +52,42 @@ class TemplateEngine:
                         self.__write_loop_template(ch)
 
     def __write_line(self, ch: str, users: json):
-        if len(self.__deque) == 0 and ch != '<':
+        if len(self.__pattern_str) == 0 and ch != '<':
             self.__line_str += ch
 
         # accumulate template data when '<' is started
         elif ch == '<':
-            self.__deque += ch
+            self.__pattern_str += ch
 
-        # once deque has appended, just append ch to deque until end of template syntax '>' is found
-        elif len(self.__deque) != 0:
-            self.__deque += ch
+        # once __pattern_str has appended, just append ch to __pattern_str until end of template syntax '>' is found
+        elif len(self.__pattern_str) != 0:
+            self.__pattern_str += ch
 
-            # read template string <?[input]?> and generate string with data
+            # read template string <?INPUT?> and generate string with data
             if ch == '>':
 
-                # deque syntax check. if the text is not <?[input]?> reset deque and append to __line_str
-                if self.__deque[0:2] != '<?' or self.__deque[-2:] != '?>':
-                    self.__line_str += ''.join(self.__deque)
-                    self.__deque = ''
+                # syntax check.
+                # if pattern is not <?INPUT?> flush __pattern_str and append to __line_str.
+                if self.__pattern_str[0:2] != '<?' or self.__pattern_str[-2:] != '?>':
+                    self.__line_str += self.__pattern_str
+                    self.__pattern_str = ''
 
-                # extract value from inline template. format is <?=[input]?>
-                elif self.__deque[2] == '=':
-                    input_str = self.__deque[3:-2].strip()
-                    key_list = input_str.split('.')
+                # extract value from template variable. format is <?=VARIABLE?>
+                elif self.__pattern_str[2] == '=':
+                    variable_str = self.__pattern_str[3:-2].strip()
+                    key_list = variable_str.split('.')
                     parsed_str = json_walker.find_val(users, key_list[1:])
                     self.__line_str += parsed_str
-                    self.__deque = ''
+                    self.__pattern_str = ''
 
                 # for loop mode. format is <? for [variable] in [array] ?>
                 else:
-                    input_str = self.__deque[2:-2].strip()
-                    key_list = input_str.split()[-1].split('.')
+                    for_str = self.__pattern_str[2:-2].strip()
+                    key_list = for_str.split()[-1].split('.')
                     self.__loop_arr = json_walker.find_arr(users, key_list[1:])
                     self.__loop_flag = True
                     self.__loop_template_str = ''
-                    self.__deque = ''
+                    self.__pattern_str = ''
 
         # write line to file immediately when line break character detected
         if self.__line_str[-2:] == '\\n':
@@ -97,20 +98,20 @@ class TemplateEngine:
     def __write_loop_template(self, ch: str):
         self.__loop_template_str += ch
         if ch == '<':
-            self.__deque += ch
+            self.__pattern_str += ch
         elif ch == '>':
-            self.__deque += ch
-            inline_str = self.__deque[2:-2].strip()
+            self.__pattern_str += ch
+            inline_str = self.__pattern_str[2:-2].strip()
             if inline_str.find('endfor') != -1:
                 self.__loop_flag = False
-                self.__loop_template_str = self.__loop_template_str[:-len(self.__deque)]
+                self.__loop_template_str = self.__loop_template_str[:-len(self.__pattern_str)]
                 # TODO write for loop template str here
                 # fixme
-                self.__deque = ''
+                self.__pattern_str = ''
                 for item in self.__loop_arr:
                     for ch in self.__loop_template_str:
                         if ch != '\n':
                             self.__write_line(ch, item)
-            self.__deque = ''
-        elif len(self.__deque) > 0:
-            self.__deque += ch
+            self.__pattern_str = ''
+        elif len(self.__pattern_str) > 0:
+            self.__pattern_str += ch
