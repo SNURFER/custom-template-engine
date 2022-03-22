@@ -81,12 +81,17 @@ class TemplateEngine:
                     self.__pattern_str = ''
 
                 # for loop mode. format is <? for [variable] in [array] ?>
-                else:
+                elif self.__pattern_str[2:-2].strip().split()[0] == 'for':
                     for_str = self.__pattern_str[2:-2].strip()
                     key_list = for_str.split()[-1].split('.')
                     self.__loop_arr = json_walker.find_arr(users, key_list[1:])
                     self.__loop_flag = True
                     self.__loop_template_str = ''
+                    self.__pattern_str = ''
+
+                # error syntax
+                else:
+                    self.__line_str += '?'
                     self.__pattern_str = ''
 
         # write line to file immediately when line break character detected
