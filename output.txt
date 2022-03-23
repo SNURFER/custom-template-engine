@@ -1,9 +1,5 @@
-Name: HS KIM
-Address : ABC CDE
-
-Name: John Doe
-Address : AAA BBB
-Address : 123 234
-
-Name: Jane Doe
+Admin
+Membership Id : 12345
+Membership Id : 67890
+Membership Id : 99999
 

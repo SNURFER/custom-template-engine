@@ -7,14 +7,12 @@ if __name__ == '__main__':
     template_store = TemplateStore()
 
     template_engine = TemplateEngine(template_store, users)
-    if template_store.user_mode():
-        # print all users with template
-        # input is USER and generate every USER in data.json
-        template_engine.gen_code_user()
-    else:
-        # general template engine
-        # input is USERS
-        template_engine.gen_code()
-        pass
+
+    # pattern input is 'USERS'
+    template_engine.gen_code()
+
+    print('===================================================')
+    print('================code generate ended================')
+    print('===================================================')
 
 

@@ -40,17 +40,6 @@ class TemplateEngine:
                 else:
                     self.__write_loop_template(ch)
 
-    def gen_code_user(self):
-        for user in self.__users:
-            for ch in self.__template.get_str():
-                # jump to next loop if real line break exists
-                # only user written '\n' will move to next line
-                if ch != '\n':
-                    if not self.__loop_counter:
-                        self.__write_line(ch, user)
-                    else:
-                        self.__write_loop_template(ch)
-
     def __write_line(self, ch: str, users: json):
         if len(self.__pattern_str) == 0 and ch != '<':
             self.__line_str += ch
