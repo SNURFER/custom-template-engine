@@ -23,9 +23,9 @@ class TemplateEngine:
         # <? ?>
         self.__pattern_str: str = ''
 
-        self.__loop_flag: bool = False
-        self.__loop_arr: [] = []
-        self.__loop_template_str: str = ''
+        self.__loop_counter: int = 0
+        self.__loop_arr: [[]] = []
+        self.__loop_template_str: [str] = []
 
     def __del__(self):
         self.__f.close()
@@ -35,7 +35,7 @@ class TemplateEngine:
             # jump to next loop if real line break exists
             # only user written '\n' will move to next line
             if ch != '\n':
-                if not self.__loop_flag:
+                if not self.__loop_counter:
                     self.__write_line(ch, self.__users)
                 else:
                     self.__write_loop_template(ch)
@@ -46,7 +46,7 @@ class TemplateEngine:
                 # jump to next loop if real line break exists
                 # only user written '\n' will move to next line
                 if ch != '\n':
-                    if not self.__loop_flag:
+                    if not self.__loop_counter:
                         self.__write_line(ch, user)
                     else:
                         self.__write_loop_template(ch)
@@ -84,9 +84,9 @@ class TemplateEngine:
                 elif self.__pattern_str[2:-2].strip().split()[0] == 'for':
                     for_str = self.__pattern_str[2:-2].strip()
                     key_list = for_str.split()[-1].split('.')
-                    self.__loop_arr = json_walker.find_arr(users, key_list[1:])
-                    self.__loop_flag = True
-                    self.__loop_template_str = ''
+                    self.__loop_arr.append(json_walker.find_arr(users, key_list[1:]))
+                    self.__loop_counter = 1
+                    self.__loop_template_str.append('')
                     self.__pattern_str = ''
 
                 # error syntax
@@ -101,22 +101,32 @@ class TemplateEngine:
             self.__line_str = ''
 
     def __write_loop_template(self, ch: str):
-        self.__loop_template_str += ch
+        self.__loop_template_str[-1] += ch
         if ch == '<':
             self.__pattern_str += ch
         elif ch == '>':
             self.__pattern_str += ch
-            inline_str = self.__pattern_str[2:-2].strip()
-            if inline_str.find('endfor') != -1:
-                self.__loop_flag = False
-                self.__loop_template_str = self.__loop_template_str[:-len(self.__pattern_str)]
-                # TODO write for loop template str here
-                # fixme
-                self.__pattern_str = ''
-                for item in self.__loop_arr:
-                    for ch in self.__loop_template_str:
-                        if ch != '\n':
-                            self.__write_line(ch, item)
+            variable_str = self.__pattern_str[2:-2].strip()
+
+            if variable_str.split()[0] == 'for':
+                self.__loop_counter += 1
+
+            if variable_str == 'endfor':
+                self.__loop_counter -= 1
+                if self.__loop_counter == 0:
+                    self.__loop_template_str[-1] = self.__loop_template_str[-1][:-len(self.__pattern_str)]
+                    self.__pattern_str = ''
+                    for item in self.__loop_arr[-1]:
+                        for ch in self.__loop_template_str[-1]:
+                            if ch != '\n':
+                                if not self.__loop_counter:
+                                    self.__write_line(ch, item)
+                                else:
+                                    self.__write_loop_template(ch)
+                    self.__loop_template_str.pop()
+                    self.__loop_arr.pop()
+
             self.__pattern_str = ''
+
         elif len(self.__pattern_str) > 0:
             self.__pattern_str += ch
