@@ -40,6 +40,9 @@ class TemplateEngine:
                 else:
                     self.__write_loop_template(ch)
 
+        if self.__line_str:
+            self.__f.write(self.__line_str)
+
     def __write_line(self, ch: str, users: json):
         if len(self.__pattern_str) == 0 and ch != '<':
             self.__line_str += ch
