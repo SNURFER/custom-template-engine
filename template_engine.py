@@ -10,7 +10,7 @@ class TemplateEngine:
         self.__template = template_store
 
         # data file json
-        self.__users: json = users
+        self.__users: json = {'USERS': users}
 
         # accumulated line string
         # write to file and flush when line break is met
@@ -23,8 +23,19 @@ class TemplateEngine:
         # <? ?>
         self.__pattern_str: str = ''
 
+        # counting nested 'for loop' depth
         self.__loop_counter: int = 0
+
+        # for [variable] in [array]
+        # save iterable [array]. type is list because of nested 'for loop'
         self.__loop_arr: [[]] = []
+
+        # save [variable]. type is list because of nested 'for loop'
+        self.__loop_var: [] = []
+
+        # accumulated string of inner 'for loop' pattern
+        # <? for [variable] in [array] ?>[loop template string]<? endfor ?>
+        # type is list because of nested 'for loop'
         self.__loop_template_str: [str] = []
 
     def __del__(self):
@@ -39,11 +50,11 @@ class TemplateEngine:
                     self.__write_line(ch, self.__users)
                 else:
                     self.__write_loop_template(ch)
-
+        # if template has no line break, write to file at the end.
         if self.__line_str:
             self.__f.write(self.__line_str)
 
-    def __write_line(self, ch: str, users: json):
+    def __write_line(self, ch: str, data: json):
         if len(self.__pattern_str) == 0 and ch != '<':
             self.__line_str += ch
 
@@ -68,7 +79,7 @@ class TemplateEngine:
                 elif self.__pattern_str[2] == '=':
                     variable_str = self.__pattern_str[3:-2].strip()
                     key_list = variable_str.split('.')
-                    parsed_str = json_walker.find_val(users, key_list[1:])
+                    parsed_str = json_walker.find_val(data, key_list)
                     self.__line_str += parsed_str
                     self.__pattern_str = ''
 
@@ -76,7 +87,8 @@ class TemplateEngine:
                 elif self.__pattern_str[2:-2].strip().split()[0] == 'for':
                     for_str = self.__pattern_str[2:-2].strip()
                     key_list = for_str.split()[-1].split('.')
-                    self.__loop_arr.append(json_walker.find_arr(users, key_list[1:]))
+                    self.__loop_var.append(for_str.split()[1])
+                    self.__loop_arr.append(json_walker.find_arr(data, key_list))
                     self.__loop_counter = 1
                     self.__loop_template_str.append('')
                     self.__pattern_str = ''
@@ -105,6 +117,7 @@ class TemplateEngine:
 
             if variable_str == 'endfor':
                 self.__loop_counter -= 1
+                # write outer 'for loop' first
                 if self.__loop_counter == 0:
                     self.__loop_template_str[-1] = self.__loop_template_str[-1][:-len(self.__pattern_str)]
                     self.__pattern_str = ''
@@ -112,11 +125,12 @@ class TemplateEngine:
                         for ch in self.__loop_template_str[-1]:
                             if ch != '\n':
                                 if not self.__loop_counter:
-                                    self.__write_line(ch, item)
+                                    self.__write_line(ch, {self.__loop_var[-1]: item})
                                 else:
                                     self.__write_loop_template(ch)
                     self.__loop_template_str.pop()
                     self.__loop_arr.pop()
+                    self.__loop_var.pop()
 
             self.__pattern_str = ''
 
