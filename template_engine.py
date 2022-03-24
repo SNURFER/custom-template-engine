@@ -28,7 +28,7 @@ class TemplateEngine:
 
         # for [variable] in [array]
         # save iterable [array]. type is list because of nested 'for loop'
-        self.__loop_arr: [[]] = []
+        self.__loop_arr: [] = []
 
         # save [variable]. type is list because of nested 'for loop'
         self.__loop_var: [] = []
@@ -36,7 +36,7 @@ class TemplateEngine:
         # accumulated string of inner 'for loop' pattern
         # <? for [variable] in [array] ?>[loop template string]<? endfor ?>
         # type is list because of nested 'for loop'
-        self.__loop_template_str: [str] = []
+        self.__loop_template_str: [] = []
 
     def __del__(self):
         self.__f.close()
@@ -47,8 +47,10 @@ class TemplateEngine:
             # only user written '\n' will move to next line
             if ch != '\n':
                 if not self.__loop_counter:
+                    # write lines to memory and file, if it is not loop scope
                     self.__write_line(ch, self.__users)
                 else:
+                    # write loop template string to memory, if it is loop scope
                     self.__write_loop_template(ch)
         # if template has no line break, write to file at the end.
         if self.__line_str:
@@ -58,11 +60,11 @@ class TemplateEngine:
         if len(self.__pattern_str) == 0 and ch != '<':
             self.__line_str += ch
 
-        # accumulate template data when '<' is started
+        # accumulate pattern string when '<' is started
         elif ch == '<':
             self.__pattern_str += ch
 
-        # once __pattern_str has appended, just append ch to __pattern_str until end of template syntax '>' is found
+        # once __pattern_str has accumulated, just concat ch to __pattern_str until end of template syntax '>' is found
         elif len(self.__pattern_str) != 0:
             self.__pattern_str += ch
 
@@ -115,12 +117,14 @@ class TemplateEngine:
             if variable_str.split()[0] == 'for':
                 self.__loop_counter += 1
 
+            # accumulate loop template string until the outermost loop is finished by <? endfor ?>
             if variable_str == 'endfor':
                 self.__loop_counter -= 1
-                # write outer 'for loop' first
                 if self.__loop_counter == 0:
                     self.__loop_template_str[-1] = self.__loop_template_str[-1][:-len(self.__pattern_str)]
                     self.__pattern_str = ''
+                    # write lines with for loop
+                    # when it encounters nested loop, write loop template string recursively
                     for item in self.__loop_arr[-1]:
                         for ch in self.__loop_template_str[-1]:
                             if ch != '\n':
