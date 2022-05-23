@@ -32,9 +32,9 @@ $ cat output.txt
   - 기타 `<? ?>` 가 아닌 모든 패턴은 사용자가 의도한 고정 값으로 간주하여 그대로 출력을 해주도록 구현
   - 즉, syntax error는 따로 존재하지 않으며, 패턴이 맞지 않을 시, 고정 스트링으로 가정하여 출력함
 - `<?[variable]?>` 내의 변수에 대응되는 데이터가 없을 경우 `?`를 출력함
-- (난이도 상)USERS를 입력으로 받음 
+- USERS를 입력으로 받음 
   - USERS는 data.json 파일에 작성된 데이터 객체(사용자 Array)를 의미함
-  - 하, 중과 같은 Template의 경우, USER를 입력으로 받기 때문에 구현한 엔진으로 처리가 되지않음
+  - template1, template2와 같은 Template의 경우 처럼 nested한 for loop을 제공 
     - for loop을 한번 더 감싸면 기대 결과에 맞게 출력가능(input/template1, input/template2 참고)
     ```
     <? for USER in USERS.* ?>
