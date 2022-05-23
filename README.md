@@ -1,4 +1,4 @@
-## custom-template-engine
+# custom-template-engine
 - 사용자 정보를 template 코드에 삽입해주는 템플릿 엔진
   - 테스트를 위한 템플릿코드는 input/template1, input/template2, input/template3에 위치  
   - 테스트를 위한 사용자 정보 json은 input/data.json에 위치 
@@ -41,17 +41,16 @@ $ cat output.txt
   - `<? for USER in USERS.* ?>`   
 - USERS를 입력으로 받음 
   - USERS는 data.json 파일에 작성된 데이터 객체(사용자 Array)를 의미함
-  - JS object prop에 접근하듯이, '.'을 이용하여 속성에 접근 가능 
+  - JS object prop에 접근하듯이, '.'을 이용하여 속성에 접근 가능(속성이 존재하지 않으면 `?`를 반환) 
     - 예) USERS.0.info.name.family   
   - input/template2처럼 nested한 for loop을 제공 
-    - for loop을 한번 더 감싸면 기대 결과에 맞게 출력가능(input/template1, input/template2 참고)
     ```
     <? for USER in USERS.* ?>
-    Family name: <?=USER.info.name.family?>\n
-    Given name: <?=USER.info.name.given ?>\n
-    Address : <?= USER.info.addrs.0.addr1?> <?= USER.info.addrs.0.addr2?>\n
-    MemberShip : <?=USER.membership.grade?> <?= USER.membership.id ?>\n
-    \n
+      Name: <?=USER.info.name.given ?> <?=USER.info.name.family?>\n
+      <? for ADDR in USER.info.addrs ?>
+        Address : <?= ADDR.addr1?> <?= ADDR.addr2?>\n
+      <? endfor ?>
+      \n
     <? endfor ?>
     ```
   - array의 item은 index로 접근 가능
